@@ -1,115 +1,103 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+'use client'
+import { useEffect, useState } from "react";
+import { initClient } from "@ts-rest/core";
+import { contract, Task } from "./contract";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+export const client = initClient(contract, {
+  baseUrl: 'http://localhost:3000/api',
+  baseHeaders: {
+    'x-app-source': 'ts-rest',
+  }
 });
 
 export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [tasks, setTasks] = useState<Task[] | null>(null);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const createTask = async () => {
+    const { body, status } = await client.createTask({
+      body: {
+        title: taskTitle,
+        description: taskDescription
+      }
+    });
+
+    if (status === 201 && body !== null) {
+      tasks !== null
+        ? setTasks([...tasks, body])
+        : setTasks([body])
+
+      setTaskTitle("");
+      setTaskDescription("");
+    }
+  }
+
+  useEffect(() => {
+    const getTasks = async () => {
+      const { body, status } = await client.getTasks();
+      if (status === 200 && body !== null) {
+        setTasks(body)
+      }
+    }
+    getTasks();
+  }, [])
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center p-8 gap-10 bg-gray-100">
+      <h1 className="text-3xl font-bold mb-8 text-gray-600"> ts-rest </h1>
+      <form className="w-full max-w-md bg-white shadow-md rounded-lg p-6 space-y-4">
+        <div>
+        <h1 className="text-2xl font-bold mb-8 text-gray-600 text-center"> Add task </h1>
+          <label className="block text-gray-700 text-sm font-bold mb-2"> Task Title
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
+              placeholder="Enter task title"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </label>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div>
+          <label className="block text-gray-700 text-sm font-bold mb-2"> Description
+            <input
+              type="text"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              aria-multiline={true}
+              placeholder="Enter task description"
+            />
+          </label>
+        </div>
+        <div>
+          <button
+            type="button"
+            onClick={async () => await createTask()}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+          >
+            Create Task
+          </button>
+        </div>
+      </form>
+      <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6 space-y-4">
+        <h1 className="text-2xl font-semibold mb-6 text-gray-700 text-center">Tasks</h1>
+        <div className="space-y-4">
+          {
+            tasks ? (
+              tasks.map((task) => (
+                <div key={task.id} className="flex justify-between items-center p-4 gap-auto bg-gray-100 rounded-lg shadow-sm">
+                  <p className="font-bold text-gray-800">{task.title}</p>
+                  <p className="text-gray-600">{task.description}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">Add a task to begin</p>
+            )
+          }
+        </div>
+      </div>
     </div>
   );
 }
